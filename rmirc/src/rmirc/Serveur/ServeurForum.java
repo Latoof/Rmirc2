@@ -45,10 +45,45 @@ public class ServeurForum extends UnicastRemoteObject implements InterfaceServeu
 		
 		/* Default subjects */
 		if ( _sujets.containsKey(titre_sujet) ) {
-			return _sujets.get(titre_sujet);
+			
+			InterfaceSujetDiscussion sujet = _sujets.get(titre_sujet);
+			
+			if ( this.verifierPresenceSujet(sujet) ) {
+				return sujet;
+			}
+
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public boolean verifierPresenceSujet( InterfaceSujetDiscussion sujet ) throws RemoteException {
+		
+		
+		if ( sujet != null && _sujets.containsValue(sujet) ) {
+			
+			/* Le le PING echoue, le Sujet n'est pas renvoye */
+			try {
+
+				if ( sujet.ping() == true ) {
+					System.out.println("Found.");
+
+					return true;
+				}
+			}
+			catch ( RemoteException e ) {
+				
+				System.out.println("Connection lost with a provider");
+		
+			}
+			
+			this.supprimeSujet(sujet);
+		
+		}
+		
+		return false;
+		
 	}
 	
 
@@ -66,6 +101,21 @@ public class ServeurForum extends UnicastRemoteObject implements InterfaceServeu
 		return false;
 	}
 	
+	
+	@Override
+	public boolean supprimeSujet(InterfaceSujetDiscussion sujet)
+			throws RemoteException {
+		
+	
+		if ( _sujets.containsValue(sujet) ) {
+			sujet.diffuse("Sujet \""+sujet.get_titre()+"\" ferme !");
+			_sujets.remove(sujet.get_titre());
+			return true;
+		}
+		
+	
+		return false;
+	}
 	
 	
     public static void main(String[] args) {
@@ -91,7 +141,7 @@ public class ServeurForum extends UnicastRemoteObject implements InterfaceServeu
             Registry registry = LocateRegistry.getRegistry(0);
             Naming.rebind(url, forum);
             
-            System.out.println("MyOwn bounded");
+            System.out.println("Serveur TohuBohu j'ecoute !");
             
         } catch (Exception e) {
         	
@@ -101,6 +151,9 @@ public class ServeurForum extends UnicastRemoteObject implements InterfaceServeu
         }
         
     }
+
+
+
 
 
 

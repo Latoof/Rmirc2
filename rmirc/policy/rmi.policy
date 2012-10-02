@@ -2,4 +2,18 @@ grant{
 permission java.net.SocketPermission "localhost:1099", "connect, resolve";
 permission java.net.SocketPermission "localhost:1024-", "connect, resolve";
 permission java.net.SocketPermission "localhost:1024-", "accept, resolve";
+
+permission java.util.PropertyPermission "java.version", "read";
+permission java.util.PropertyPermission "java.vendor", "read";
+//omitted for readability 
+// Precompiled JSPs need access to this package.
+
+permission java.lang.RuntimePermission "accessClassInPackage.org.apache.jasper.runtime";
+permission java.lang.RuntimePermission "accessClassInPackage.org.apache.jasper.runtime.*";
+
+permission java.lang.RuntimePermission "accessDeclaredMembers";
+
+permission java.lang.RuntimePermission "shutdownHooks";
 };
+
+

@@ -14,5 +14,6 @@ public interface InterfaceSujetDiscussion extends Remote {
 	
 	public String get_titre() throws RemoteException;
 	
+	public boolean ping() throws RemoteException;
 	
 }

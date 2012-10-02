@@ -65,6 +65,12 @@ public class SujetDiscussion extends UnicastRemoteObject implements InterfaceSuj
 		return _titre;
 	}
 
+	@Override
+	public boolean ping() throws RemoteException {
+
+		return true;
+	}
+
 	
 	
 }

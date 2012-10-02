@@ -86,7 +86,13 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	            			
 	            			if ( spl[0].equals("/join") ) {
 	            				
-	            				suj.inscription(ac);
+	            				try {
+	            					suj.inscription(ac);
+	            				}
+	            				catch ( ConnectException e ) {
+	            					System.out.println("Connexion refusee. Le sujet n'existe pas");
+	            					
+	            				}
 	            				
 	            			}
 	            			else if ( spl[0].equals("/part") ) {
@@ -97,6 +103,7 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	            				
 	            				// On peut tester si le Serveur est bien toujours la 
 	            				try {
+	            					
 	            					suj.diffuse(spl[2]);
 	            				}
 	            				catch ( ConnectException e ) {
