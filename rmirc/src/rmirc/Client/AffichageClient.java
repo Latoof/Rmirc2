@@ -7,6 +7,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Iterator;
+import java.util.Set;
 
 import rmirc.Interfaces.InterfaceAffichageClient;
 import rmirc.Interfaces.InterfaceServeurForum;
@@ -22,11 +24,18 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	 */
 	private static final long serialVersionUID = 1582318348755837843L;
 	
+	public final String DEFAULT_NAME = "Anonymous";
+	
+	private String _pseudo;
 	
 
 	public AffichageClient() throws RemoteException {
-    	
+    	_pseudo = DEFAULT_NAME;
     }
+	
+	public AffichageClient( String pseudo ) throws RemoteException {
+		_pseudo = pseudo;
+	}
 
 	@Override
 	public void affiche(String message) throws RemoteException {
@@ -35,6 +44,12 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 		
 	}    
 	
+    @Override
+    public String get_identifiant()  throws RemoteException {
+    	
+    	return _pseudo;
+    	
+    }
 	
 	public static String wait_for_cmd() {
 		
@@ -52,7 +67,7 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	      
 	}
 	
-    public static void main(String args[]) {
+    public static void main( String args[] ) {
     	
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
@@ -63,7 +78,15 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
                        
             InterfaceServeurForum forum = (InterfaceServeurForum) registry.lookup(name);
  
-            AffichageClient ac = new AffichageClient();
+            AffichageClient ac = null;
+            
+
+            if ( args.length > 0 ) {
+            	ac = new AffichageClient(args[0]);
+            }
+            else {
+            	ac = new AffichageClient();
+            }
             
             String cmd = "";
             while ( ( cmd = wait_for_cmd() ) != "exit" ) {
@@ -73,6 +96,8 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
             		System.out.println("	/join <subject>");
             		System.out.println("	/part <subject>");
             		System.out.println("	/msg <subject> <message>");
+            		System.out.println("	/list <subject>");
+
             	}
             	else {
             		
@@ -82,10 +107,16 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
             			
             			InterfaceSujetDiscussion suj = forum.obtientSujet(spl[1]);
             			
-            			if ( suj != null ) {
-	            			
-	            			if ( spl[0].equals("/join") ) {
-	            				
+             			if ( spl[0].equals("/join") ) {
+            				
+             				
+             				if ( suj == null ) {
+                    			//InterfaceSujetDiscussion suj = forum.obtientSujet(spl[1]);
+
+             					//forum.enregistreSujet(spl[1]);
+             				}
+             				else {
+             				
 	            				try {
 	            					suj.inscription(ac);
 	            				}
@@ -93,9 +124,15 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	            					System.out.println("Connexion refusee. Le sujet n'existe pas");
 	            					
 	            				}
-	            				
-	            			}
-	            			else if ( spl[0].equals("/part") ) {
+            				
+             				}
+            				
+            			}
+             			
+             			else if ( suj != null ) {
+	            			
+	       
+	            			if ( spl[0].equals("/part") ) {
 	            				suj.desInscription(ac);
 
 	            			}
@@ -104,13 +141,33 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
 	            				// On peut tester si le Serveur est bien toujours la 
 	            				try {
 	            					
-	            					suj.diffuse(spl[2]);
+	            					suj.message(ac,spl[2]);
 	            				}
 	            				catch ( ConnectException e ) {
 	            					System.out.println("Erreur : Connexion avec le canal perdue. Tentez de rejoindre le canal.");
 	            				}
 	            				
 	            			}
+	            			else if ( spl[0].equals("/list") ) {
+	            				
+	            				// On peut tester si le Serveur est bien toujours la 
+	            				try {
+	            					
+	            					Set<InterfaceAffichageClient> clients = suj.get_connected_clients();
+	            					Iterator<InterfaceAffichageClient> iter = clients.iterator();
+	            					
+	            					System.out.println("Connected clients :");
+	            					while ( iter.hasNext() ) {
+	            						System.out.println("\t- "+iter.next().get_identifiant());
+	            					}
+	            					
+	            				}
+	            				catch ( ConnectException e ) {
+	            					System.out.println("Erreur : Connexion avec le canal perdue. Tentez de rejoindre le canal.");
+	            				}
+	            				
+	            			}
+	            			
             			}
             			else {
             				System.out.println(spl[1]+" : Subject not found !");
@@ -131,5 +188,7 @@ public class AffichageClient extends UnicastRemoteObject implements InterfaceAff
             e.printStackTrace();
         }
     }
+    
+
     
 }
